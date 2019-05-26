@@ -17,6 +17,8 @@ var playerIsJumping = false;
 var playerIsFalling = false;
 var playerY_now;
 var playerY_then;
+var decrementationOfPlayerY = true;
+var playerIsFallingCannotBecomeTrue = false;
 
 var Keys = {
   left: false,
@@ -115,6 +117,7 @@ window.onmousedown = function()
   Keys.click = true;
   // one wall must be created
   walls[++wallNumber] = new Wall();
+  walls[wallNumber].timerStart();
 }
 
 window.onmouseup = function()
@@ -123,9 +126,8 @@ window.onmouseup = function()
   Keys.click = false;
 }
 
-function distanceBetween(firstPointX, firstPointY, secondPointX, secondPointY)
-{
-  return Math.sqrt(Math.pow(firstPointX-secondPointX, 2) + Math.pow(firstPointY-secondPointY, 2));
+function distanceBetween(point1_x, point1_y, point2_x, point2_y, x0, y0) {
+    return ((Math.abs((point2_y - point1_y) * x0 - (point2_x - point1_x) * y0 + point2_x * point1_y - point2_y * point1_x)) / (Math.pow((Math.pow(point2_y - point1_y, 2) + Math.pow(point2_x - point1_x, 2)), 0.5)));
 }
 
 window.onmousemove = function(e)
@@ -138,7 +140,7 @@ window.onmousemove = function(e)
   {
     if(lastPointX)
     {
-      if(distanceBetween(mousseX, mousseY, lastPointX, lastPointY)>=walls[wallNumber].circleRadius)
+      if(dist(mousseX, mousseY, lastPointX, lastPointY)>=walls[wallNumber].circleRadius)
       {
         walls[wallNumber].create(mousseX, mousseY);
         lastPointX = mousseX;
@@ -154,31 +156,16 @@ window.onmousemove = function(e)
   }
 }
 
-function shouldTheGravityStop()
+function shouldTheGravityStop(x_less, y_less, x_more, y_more, xOfPlayer, yOfPlayer)
 {
   // if a wall touches the coordinates the player, then the gravity must stop its effect on the player
-  for(let i=1;i<=wallNumber;i++)
+  if(distanceBetween(x_less, y_less, x_more, y_more, xOfPlayer, yOfPlayer)<=5)
   {
-    for(let j=1;j<=walls[i].numberOfDots;j++)
-    {
-      if(playerIsJumping==true)
-      {
-        if(distanceBetween(player.x, player.y-player.r, walls[i].coordonatesOfDots[j].x, walls[i].coordonatesOfDots[j].y + walls[i].circleRadius)<=7)
-        {
-          //console.log("the wall number " + i + " was touched while jumping");
-          player.y = walls[i].coordonatesOfDots[j].y + walls[i].circleRadius;
-          player.delta = 51;
-        }
-      }
-      else if(playerIsFalling==true)
-      {
-        if(distanceBetween(player.x, player.y+player.r, walls[i].coordonatesOfDots[j].x, walls[i].coordonatesOfDots[j].y - walls[i].circleRadius)<=7)
-        {
-          //console.log("the wall number " + i + " was touched while falling");
-          player.delta = 51;
-        }
-      }
-    }
+    return true;
+  }
+  else
+  {
+    return false;
   }
 }
 
@@ -188,11 +175,202 @@ function drawEveryWall()
   for(let i=1;i<=wallNumber;i++)
   {
     walls[i].show();
+    walls[i].timerStop();
+    if(walls[i].checkForRemoval() == true)
+    {
+      // this wall must be deleted
+      for(let j=i;j<wallNumber;j++)
+      {
+        walls[j] = walls[j+1];
+      }
+      wallNumber--;
+    }
+  }
+}
+
+function checkTheWallsAbove()
+{
+  // check what walls are to be found above the coordinates of the player
+  let whichWall;
+  let pointNumber_1, pointNumber_2;
+  let y_MAX = 0;
+  let save_x_less, save_x_more;
+  let save_y_less, save_y_more;
+  for(let i=1;i<=wallNumber;i++)
+  {
+    let less = false;
+    let more = false;
+    let x_less, x_more;
+    for(let j=1;j<=walls[i].numberOfDots;j++)
+    {
+      if(less==false || more==false)
+      {
+        if(walls[i].coordonatesOfDots[j].x <= player.x)
+        {
+          less = true;
+          if(x_less)
+          {
+            if(walls[i].coordonatesOfDots[j].x > x_less)
+            {
+              x_less = walls[i].coordonatesOfDots[j].x;
+              pointNumber_1 = j;
+            }
+          }
+          else
+          {
+            x_less = walls[i].coordonatesOfDots[j].x;
+            pointNumber_1 = j;
+          }
+        }
+        else if(walls[i].coordonatesOfDots[j].x > player.x)
+        {
+          more = true;
+          if(x_more)
+          {
+            if(walls[i].coordonatesOfDots[j].x < x_more)
+            {
+              x_more = walls[i].coordonatesOfDots[j].x;
+              pointNumber_2 = j;
+            }
+          }
+          else
+          {
+            x_more = walls[i].coordonatesOfDots[j].x;
+            pointNumber_2 = j;
+          }
+        }
+      }
+    }
+    if(less==true && more==true)
+    {
+      // check if this wall must be added on the list of walls to be checkd for any possible collision with the player
+      if(walls[i].coordonatesOfDots[pointNumber_1].y > walls[i].coordonatesOfDots[pointNumber_2].y && walls[i].coordonatesOfDots[pointNumber_1].y > y_MAX)
+      {
+        y_MAX = walls[i].coordonatesOfDots[pointNumber_1].y;
+        whichWall = i;
+        
+        save_x_less = walls[i].coordonatesOfDots[pointNumber_1].x;
+        save_x_more = walls[i].coordonatesOfDots[pointNumber_2].x;
+        
+        save_y_less = walls[i].coordonatesOfDots[pointNumber_1].y;
+        save_y_more = walls[i].coordonatesOfDots[pointNumber_2].y;
+      }
+      else if(walls[i].coordonatesOfDots[pointNumber_2].y > y_MAX)
+      {
+        y_MAX = walls[i].coordonatesOfDots[pointNumber_1].y;
+        whichWall = i;
+        
+        save_x_less = walls[i].coordonatesOfDots[pointNumber_1].x;
+        save_x_more = walls[i].coordonatesOfDots[pointNumber_2].x;
+        
+        save_y_less = walls[i].coordonatesOfDots[pointNumber_1].y;
+        save_y_more = walls[i].coordonatesOfDots[pointNumber_2].y;
+      }
+    }
+  }
+  if(shouldTheGravityStop(save_x_less, save_y_less, save_x_more, save_y_more, player.x, player.y) == true)
+  {
+    player.delta = 51;
+  }
+}
+
+function checkTheWallsBelow()
+{
+  // check what walls are to be found below the coordinates of the player
+  let whichWall;
+  let pointNumber_1, pointNumber_2;
+  let y_MIN = canvasHeight;
+  let save_x_less, save_x_more;
+  let save_y_less, save_y_more;
+  for(let i=1;i<=wallNumber;i++)
+  {
+    let less = false;
+    let more = false;
+    let x_less, x_more;
+    for(let j=1;j<=walls[i].numberOfDots;j++)
+    {
+      if(less==false || more==false)
+      {
+        if(walls[i].coordonatesOfDots[j].x <= player.x)
+        {
+          less = true;
+          if(x_less)
+          {
+            if(walls[i].coordonatesOfDots[j].x > x_less)
+            {
+              x_less = walls[i].coordonatesOfDots[j].x;
+              pointNumber_1 = j;
+            }
+          }
+          else
+          {
+            x_less = walls[i].coordonatesOfDots[j].x;
+            pointNumber_1 = j;
+          }
+        }
+        else if(walls[i].coordonatesOfDots[j].x > player.x)
+        {
+          more = true;
+          if(x_more)
+          {
+            if(walls[i].coordonatesOfDots[j].x < x_more)
+            {
+              x_more = walls[i].coordonatesOfDots[j].x;
+              pointNumber_2 = j;
+            }
+          }
+          else
+          {
+            x_more = walls[i].coordonatesOfDots[j].x;
+            pointNumber_2 = j;
+          }
+        }
+      }
+    }
+    if(less==true && more==true)
+    {
+      // check if this wall must be added on the list of walls to be checkd for any possible collision with the player
+      if(walls[i].coordonatesOfDots[pointNumber_1].y < walls[i].coordonatesOfDots[pointNumber_2].y && walls[i].coordonatesOfDots[pointNumber_1].y < y_MIN) // && walls[i].coordonatesOfDots[pointNumber_1].y >= player.y + player.r)
+      {
+        y_MIN = walls[i].coordonatesOfDots[pointNumber_1].y;
+        whichWall = i;
+        
+        save_x_less = walls[i].coordonatesOfDots[pointNumber_1].x;
+        save_x_more = walls[i].coordonatesOfDots[pointNumber_2].x;
+        
+        save_y_less = walls[i].coordonatesOfDots[pointNumber_1].y;
+        save_y_more = walls[i].coordonatesOfDots[pointNumber_2].y;
+      }
+      else if(walls[i].coordonatesOfDots[pointNumber_2].y < y_MIN) // && walls[i].coordonatesOfDots[pointNumber_2].y >= player.y + player.r)
+      {
+        y_MIN = walls[i].coordonatesOfDots[pointNumber_1].y;
+        whichWall = i;
+        
+        save_x_less = walls[i].coordonatesOfDots[pointNumber_1].x;
+        save_x_more = walls[i].coordonatesOfDots[pointNumber_2].x;
+        
+        save_y_less = walls[i].coordonatesOfDots[pointNumber_1].y;
+        save_y_more = walls[i].coordonatesOfDots[pointNumber_2].y;
+      }
+    }
+  }
+  if(save_x_less, save_y_less, save_x_more, save_y_more)
+  {
+    // a wall exist below the coordinates of the player
+    if(shouldTheGravityStop(save_x_less, save_y_less, save_x_more, save_y_more, player.x, player.y + player.r) == true)
+    {
+      player.whereGravityStops = player.y +15;
+      decrementationOfPlayerY = true;
+    }
+    else
+    {
+      player.whereGravityStops = canvasHeight;
+    }
   }
 }
 
 function draw() {
-  //frameRate(200);
+  //frameRate(100);
   background(100);
   player.update();
   
@@ -216,8 +394,12 @@ function draw() {
     playerIsFalling = false;
   }
   
+  stroke(255,255,255);
   player.show();
   drawEveryWall();
-  shouldTheGravityStop();
-  player.MIN_Y = 999999999;
+  if(playerIsJumping == true)
+  {
+    checkTheWallsAbove();
+  }
+  checkTheWallsBelow();
 }
