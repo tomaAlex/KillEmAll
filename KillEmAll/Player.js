@@ -13,6 +13,7 @@ function Player()
   this.velocity = 0;
   this.bottom = canvasHeight - this.r;
   this.delta = 0;
+  this.whereGravityStops = canvasHeight;
   
   this.jump = function()
   {
@@ -107,13 +108,14 @@ function Player()
     //{
     //  this.MIN_Y = canvasHeight;
     //}
-    if(this.y + this.r < canvasHeight)
+    
+    if(this.y + this.r < this.whereGravityStops)
     {
       this.velocity += this.acceleration;
       this.y += this.velocity;
-      if(this.y + this.r > canvasHeight)
+      if(this.y + this.r > this.whereGravityStops)
       {
-        this.y = canvasHeight - this.r;
+        this.y = this.whereGravityStops - this.r;
       }
     }
     else
@@ -126,35 +128,10 @@ function Player()
       console.log("x is smaller than 0");
       this.x = 0;
     }
-    if(this.x + this.r > canvasWidth)
+    if(this.x + this.r > this.whereGravityStops)
     {
       console.log("x is bigger than the width of the height");
-      this.x = canvasWidth - this.r;
-    }
-    // check whether the player touches any walls or not
-    // if so, then delta becomes bigger than 50, thus the gravity stops
-    let MIN = 999999999;
-    for(let i=1;i<=wallNumber;i++)
-    {
-      for(let j=1;j<=walls[i].numberOfDots;j++)
-      {
-        if(this.y + this.r <= walls[i].coordonatesOfDots[j].y && walls[i].coordonatesOfDots[j].y < MIN)
-        {
-          MIN = walls[i].coordonatesOfDots[j].y;
-        }
-      }   
-    }
-    // all of the coordonates of the walls have been checked
-    // see where the player should eventually stop
-    for(let i=1;i<=wallNumber;i++)
-    {
-      for(let j=1;j<=walls[i].numberOfDots;j++)
-      {
-        if(this.y + this.r <= walls[i].coordonatesOfDots[j].y && walls[i].coordonatesOfDots[j].y == MIN)
-        {
-          // this is the point where the delta must become 0
-        }
-      }   
+      this.x = this.whereGravityStops - this.r;
     }
   }
   this.show = function()
