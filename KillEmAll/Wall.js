@@ -1,16 +1,3 @@
-var firstTimer;
-var betTimer;
-var deltaTimer;
-
-function timerStart()
-{
-  firstTimer = new Date().getTime();
-}
-
-function timerStop()
-{
-  secondTimer = new Date().getTime();
-}
 
 function coordonates()
 {
@@ -27,8 +14,10 @@ function Wall()
   // this object is formed from a lot of circles on the screen
   this.numberOfDots = 0;
   this.coordonatesOfDots = [];
-  this.circleRadius = 5;
-  this.maximumDots = 100;
+  this.circleRadius = 2;
+  this.maximumDots = 13;
+  this.firstTimer;
+  this.secondTimer;
   this.create = function(x, y)
   {
     if(this.numberOfDots < this.maximumDots)
@@ -45,13 +34,35 @@ function Wall()
       this.create(mousseX, mousseY);
     }
   }
+  this.timerStart = function()
+  {
+    this.firstTimer = new Date().getTime();
+  }
+  this.timerStop = function()
+  {
+    this.secondTimer = new Date().getTime();
+  }
+  this.checkForRemoval = function()
+  {
+    if(this.firstTimer && this.secondTimer)
+    {
+      //they both exist
+      if(this.secondTimer - this.firstTimer >= 5000)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+  }
   this.show = function()
   {
-    for(let i=1;i<=this.numberOfDots;i++)
+    for(let i=1;i<this.numberOfDots;i++)
     {
-      fill(255,0,255);
-      noStroke();
-      circle(this.coordonatesOfDots[i].x,this.coordonatesOfDots[i].y, this.circleRadius);
+      stroke(255,0,255);
+      line(this.coordonatesOfDots[i].x,this.coordonatesOfDots[i].y, this.coordonatesOfDots[i+1].x, this.coordonatesOfDots[i+1].y); 
     }
   }
 }
