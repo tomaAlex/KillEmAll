@@ -19,6 +19,7 @@ var playerY_now;
 var playerY_then;
 var decrementationOfPlayerY = true;
 var playerIsFallingCannotBecomeTrue = false;
+var counterBullets = 0;
 
 var Keys = {
   left: false,
