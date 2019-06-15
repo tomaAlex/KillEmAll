@@ -128,10 +128,15 @@ function Player()
       console.log("x is smaller than 0");
       this.x = 0;
     }
-    if(this.x + this.r > this.whereGravityStops)
+    if(this.x + this.r > canvasWidth)
     {
-      console.log("x is bigger than the width of the height");
-      this.x = this.whereGravityStops - this.r;
+      console.log("x is bigger than the width of the canvas!");
+      this.x = canvasWidth - this.r;
+    }
+    if(this.y + this.r > this.whereGravityStops)
+    {
+      console.log("y is bigger than the height of whereGravityStops variable!");
+      this.y = this.whereGravityStops - this.r;
     }
   }
   this.show = function()
