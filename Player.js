@@ -142,6 +142,7 @@ function Player()
   this.show = function()
   {
     fill(255);
+    noStroke();
     rect(this.x, this.y, this.r, this.r);
   }
 }

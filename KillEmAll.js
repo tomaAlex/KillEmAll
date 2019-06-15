@@ -113,13 +113,23 @@ window.onkeyup = function(e) {
   //}
 }
 
-window.onmousedown = function()
+window.onmousedown = function(e)
 {
-  //console.log("mouse is being pressed");
-  Keys.click = true;
-  // one wall must be created
-  walls[++wallNumber] = new Wall();
-  walls[wallNumber].timerStart();
+  if(e.button == 0)
+  {
+    //console.log("left click");
+    //console.log("mouse is being pressed");
+    Keys.click = true;
+    // one wall must be created
+    walls[++wallNumber] = new Wall();
+    walls[wallNumber].timerStart();
+    
+  }
+  else if(e.button == 2)
+  {
+    //console.log("right click");
+    bullets[++counterBullets] = new Bullet(player.x + player.r / 2, player.y, e.x, e.y);
+  }
 }
 
 window.onmouseup = function()
@@ -156,14 +166,6 @@ window.onmousemove = function(e)
       lastPointY = mousseY;
     }
   }
-}
-
-window.oncontextmenu = function (e)
-{
-    //alert("right click was pressed");
-    // a new bullet must be created
-    bullets[++counterBullets] = new Bullet(player.x + player.r / 2, player.y, e.x, e.y);
-    //console.log("mouse coordinates are: x=" + e.x + " y=" + e.y);
 }
 
 function shouldTheGravityStop(x_less, y_less, x_more, y_more, xOfPlayer, yOfPlayer)
@@ -416,7 +418,16 @@ function draw() {
   // draw the bullets, which still exist
   for(let i=1;i<=counterBullets;i++)
   {
-    bullets[i].update();
-    bullets[i].show();
+    if(bullets[i].mustBeDeleted == true)
+    {
+      // this bullet must dissappear
+      bullets.splice(i, 1);
+      counterBullets--;
+    }
+    else
+    {
+      bullets[i].update();
+      bullets[i].show();
+    }
   }
 }
