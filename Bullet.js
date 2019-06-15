@@ -40,7 +40,8 @@ function Bullet(x, y, directionX, directionY)
     }
     this.show = function()
     {
-    	fill(0,255,0);
+        fill(0,255,0);
+        stroke(0,255,0);
     	console.log("show function works");
     	ellipse(this.x, this.y, this.Width, this.Height);
     }

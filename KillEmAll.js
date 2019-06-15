@@ -426,6 +426,8 @@ function draw() {
     }
     else
     {
+      fill(0,255,0);
+      stroke(0,255,0);
       bullets[i].update();
       bullets[i].show();
     }
