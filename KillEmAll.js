@@ -156,6 +156,14 @@ window.onmousemove = function(e)
   }
 }
 
+window.oncontextmenu = function (e)
+{
+    //alert("right click was pressed");
+    // a new bullet must be created
+    bullets[++counterBullets] = new Bullet(player.x + player.r / 2, player.y, e.x, e.y);
+    //console.log("mouse coordinates are: x=" + e.x + " y=" + e.y);
+}
+
 function shouldTheGravityStop(x_less, y_less, x_more, y_more, xOfPlayer, yOfPlayer)
 {
   // if a wall touches the coordinates the player, then the gravity must stop its effect on the player
@@ -402,4 +410,11 @@ function draw() {
     checkTheWallsAbove();
   }
   checkTheWallsBelow();
+
+  // draw the bullets, which still exist
+  for(let i=1;i<=counterBullets;i++)
+  {
+    bullets[i].update();
+    bullets[i].show();
+  }
 }
